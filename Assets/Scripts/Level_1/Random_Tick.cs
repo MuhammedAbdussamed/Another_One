@@ -1,20 +1,24 @@
 using System.Collections;
-using System.Threading.Tasks;
+using Microsoft.Unity.VisualStudio.Editor;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Random_Tick : MonoBehaviour
 {
 
-    // Scripts
+    [Header("Scripts")]
     [SerializeField] private InputManager inputManager;
 
-    // Canvas
+    [Header("Canvas")]
     [SerializeField] private Canvas tapCanvas;
     [SerializeField] private Canvas failedCanvas;
     [SerializeField] private Canvas completeCanvas;
+
+    [Header("UI Elements")]
     [SerializeField] private TextMeshProUGUI ScoreText;
+    [SerializeField] private UnityEngine.UI.Image scoreBackGround;
+    [SerializeField] private TextMeshProUGUI bestScoreText;
 
     // Variables
     private float randomNumber;
@@ -22,6 +26,8 @@ public class Random_Tick : MonoBehaviour
     private float maxCountDown;
     private float minCountDown;
     private float score;
+    private BackGroundColor backGroundColor;
+    [SerializeField] private float bestScore;
 
     // Bools
     private bool isSelected;
@@ -33,12 +39,15 @@ public class Random_Tick : MonoBehaviour
 
     void Start()
     {
-        maxCountDown = 6f;
+        maxCountDown = 4.5f;
         minCountDown = 0f;
+        bestScore = 4f;
     }
 
     void Update()
     {
+        ChangeBackGroundColor();
+
         SetValue();
 
         if(isFinish){return;}
@@ -105,6 +114,7 @@ public class Random_Tick : MonoBehaviour
             countDown = 0f;
             isCompleted = true;
             isFinish = true;
+            SetBestScore();
         }
         else if (isCompleted)
         {
@@ -121,6 +131,7 @@ public class Random_Tick : MonoBehaviour
         completeCanvas.gameObject.SetActive(isCompleted);
 
         ScoreText.text = score.ToString("F2") + " saniye ";
+        
     }
 
     /*-------------------------------------*/
@@ -133,6 +144,68 @@ public class Random_Tick : MonoBehaviour
     }
 
     /*-------------------------------------*/
+
+    enum BackGroundColor
+    {
+        Yellow,
+        Green,
+        Blue,
+        Red
+    }
+
+    /*------------------------------------*/
+
+    void ChangeBackGroundColor()        // 0-0.25 orange // 0.25-0.50 Green // 0.50-2 Blue // 2-4 Red
+    {
+        if (score <= 0.25f)
+        {
+            backGroundColor = BackGroundColor.Yellow;
+        }
+        else if (score <= 0.50f)
+        {
+            backGroundColor = BackGroundColor.Green;
+        }
+        else if (score <= 2f)
+        {
+            backGroundColor = BackGroundColor.Blue;
+        }
+        else if (score <= 4f)
+        {
+            backGroundColor = BackGroundColor.Red;
+        }
+
+        /*---*/
+
+        switch (backGroundColor)
+        {
+            case BackGroundColor.Yellow:
+                scoreBackGround.color = Color.yellow;
+                break;
+
+            case BackGroundColor.Green:
+                scoreBackGround.color = Color.green;
+                break;
+
+            case BackGroundColor.Blue:
+                scoreBackGround.color = Color.blue;
+                break;
+
+            case BackGroundColor.Red:
+                scoreBackGround.color = Color.red;
+                break;
+        }
+    }
+
+    /*-------------------------------------------*/
+
+    void SetBestScore()
+    {
+        if (score > bestScore){return;}
+
+        else{bestScore = score;}
+
+        bestScoreText.text = "Best Score: " + bestScore.ToString("F2");
+    }
 
     #endregion
 }
