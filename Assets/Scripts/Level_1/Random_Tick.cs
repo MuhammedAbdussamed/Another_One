@@ -6,9 +6,9 @@ using UnityEngine.UI;
 
 public class Random_Tick : MonoBehaviour
 {
-
     [Header("Scripts")]
     [SerializeField] private InputManager inputManager;
+    [SerializeField] private Sounds soundScript;
 
     [Header("Canvas")]
     [SerializeField] private Canvas tapCanvas;
@@ -19,6 +19,7 @@ public class Random_Tick : MonoBehaviour
     [SerializeField] private TextMeshProUGUI ScoreText;
     [SerializeField] private UnityEngine.UI.Image scoreBackGround;
     [SerializeField] private TextMeshProUGUI bestScoreText;
+    [SerializeField] private Button touchableDisplay;
 
     // Variables
     private float randomNumber;
@@ -27,7 +28,7 @@ public class Random_Tick : MonoBehaviour
     private float minCountDown;
     private float score;
     private BackGroundColor backGroundColor;
-    [SerializeField] private float bestScore;
+    private float bestScore;
 
     // Bools
     private bool isSelected;
@@ -35,7 +36,8 @@ public class Random_Tick : MonoBehaviour
     private bool isCoroutineStarted;
     private bool isCompleted;
     private bool isFinish;
-
+    private bool isFailed;
+    private bool tapTooEarly;
 
     void Start()
     {
@@ -54,10 +56,13 @@ public class Random_Tick : MonoBehaviour
 
         countDown = Mathf.Clamp(countDown,minCountDown,maxCountDown);
 
+        tapCanvas.gameObject.SetActive(isOpened);
+
         if (!isSelected)
         {
             SetRandomNumber();
         }
+
         else if (isSelected && !isCoroutineStarted)
         {
             StartCoroutine(WaitAndOpen());
@@ -86,6 +91,7 @@ public class Random_Tick : MonoBehaviour
             isCoroutineStarted = true;
             yield return new WaitForSeconds(randomNumber);
             isOpened = true;
+            soundScript.isTapOpen = true;
             isCoroutineStarted = false;
         }
     }
@@ -98,48 +104,65 @@ public class Random_Tick : MonoBehaviour
 
         if(countDown >= maxCountDown - 0.5f)
         {
-            failedCanvas.gameObject.SetActive(true);
+            countDown = 0f;
             isOpened = false;
+            isFailed = true;
+            isFinish = true;
         }
     }
 
     /*---------------------------------------------*/
 
-    public void Tap()
+    public IEnumerator Tap()
     {
-        if (!isCompleted && isOpened)
+        if (!isOpened && !isFinish)             // Ekran bomboş ise
         {
-            ResetAll();  
+            touchableDisplay.interactable = false;
+            yield return new WaitForSeconds(3f);
+            touchableDisplay.interactable = true;
+        }
+
+        else if (!isCompleted && isOpened)      // Tap ekrani açik ise
+        {
             score = countDown;
             countDown = 0f;
             isCompleted = true;
             isFinish = true;
             SetBestScore();
         }
-        else if (isCompleted)
+
+        else if (isCompleted || isFinish)       // Skor ekrani açik ise
         {
-            isCompleted = false;
-            isFinish = false;
+            ResetAll();
         }
+
+        else if (isFailed && isFinish)
+        {
+            ResetAll();
+        }
+        
     }
 
     /*---------------------------------------------*/
 
     void SetValue()
     {
-        tapCanvas.gameObject.SetActive(isOpened);
         completeCanvas.gameObject.SetActive(isCompleted);
+        failedCanvas.gameObject.SetActive(isFailed);
+        tapCanvas.gameObject.SetActive(isOpened);
 
         ScoreText.text = score.ToString("F2") + " saniye ";
-        
     }
 
     /*-------------------------------------*/
 
     public void ResetAll()
     {
+        isCompleted = false;
         isSelected = false;
         isOpened = false;
+        isFinish = false;
+        isFailed = false;
         isCoroutineStarted = false;
     }
 
@@ -205,6 +228,13 @@ public class Random_Tick : MonoBehaviour
         else{bestScore = score;}
 
         bestScoreText.text = "Best Score: " + bestScore.ToString("F2");
+    }
+
+    /*-------------------------------------------*/
+
+    public void OnClickFunction()
+    {
+        StartCoroutine(Tap());
     }
 
     #endregion
