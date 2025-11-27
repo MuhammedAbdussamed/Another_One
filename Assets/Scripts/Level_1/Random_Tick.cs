@@ -2,6 +2,7 @@ using System.Collections;
 using Microsoft.Unity.VisualStudio.Editor;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class Random_Tick : MonoBehaviour
@@ -14,6 +15,7 @@ public class Random_Tick : MonoBehaviour
     [SerializeField] private Canvas tapCanvas;
     [SerializeField] private Canvas failedCanvas;
     [SerializeField] private Canvas completeCanvas;
+    [SerializeField] private Canvas pauseMenuCanvas;
 
     [Header("UI Elements")]
     [SerializeField] private TextMeshProUGUI ScoreText;
@@ -136,11 +138,6 @@ public class Random_Tick : MonoBehaviour
             ResetAll();
         }
 
-        else if (isFailed && isFinish)
-        {
-            ResetAll();
-        }
-        
     }
 
     /*---------------------------------------------*/
@@ -236,6 +233,31 @@ public class Random_Tick : MonoBehaviour
     {
         StartCoroutine(Tap());
     }
+
+    /*------------------------------------------*/
+
+    public void OpenSettingsMenu()
+    {
+        pauseMenuCanvas.gameObject.SetActive(true);
+    }
+
+    public void Resume()
+    {
+        pauseMenuCanvas.gameObject.SetActive(false);
+    }
+
+    public void Restart()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
+
+    public void Quit()
+    {
+        Debug.Log("Kapaniyor...");
+        Application.Quit();
+    }
+
+    /*------------------------------------------*/
 
     #endregion
 }
